@@ -1,0 +1,109 @@
+---- выбираем данные о карточке по её ID
+--select * from dvsys_instances where InstanceID='B27B6DDD-5A94-460F-951A-954562AC6209'
+--select * from dvsys_instances where InstanceID='F2186844-A23D-4AE0-8F7A-2CEE570FE4DA'
+---- меняем параметры безопасности одной карточки, на аналогичные параметры из другой
+---- для применения изменений надо перезагрузить IIS (можно просто убить процес w3vp)
+--Update dvsys_instances set SDID='2922A0E9-EDB7-4744-BA6A-8CD72319B7C2' where InstanceID='B27B6DDD-5A94-460F-951A-954562AC6209'
+
+---- выбираем данные о карточке по её ID
+--select * from dvsys_instances where InstanceID='FFA332B4-9BE3-409F-874E-1F16C35CD3D3'
+---- dvsys_instances_date системная таблица, в которй хранатся даты созданий и изменений карточки
+--select * from dvsys_instances_date where InstanceID='FFA332B4-9BE3-409F-874E-1F16C35CD3D3'
+---- смотрим как хранятся данные конкретной карточки документа в секции основной информации  Document.Maininfo
+---- id берем из кардманагера
+--select  * from [dvtable_{30eb9b87-822b-4753-9a50-a1825dca1b74}] where InstanceID='FFA332B4-9BE3-409F-874E-1F16C35CD3D3'
+---- смортим как хранятся данные в секции получатели  Document.ReciversStaff (в данной карточке 2 получателя)
+---- в данной таблице поле ReceiverStaff будет ссылкой на поле RowID из справочника сотрудников
+--select * from [dvtable_{b6dfaead-baaa-4024-908c-5dbd693d0fd3}] where InstanceID='FFA332B4-9BE3-409F-874E-1F16C35CD3D3'
+---- выбираем сотрудников из справочника сотрудников (карточка справочника сотрудников RefStaff секция RefStaff.Employees)
+--select * from [dvtable_{dbc8ae9d-c1d2-4d5e-978b-339d22b32482}] where RowID in (select ReceiverStaff from [dvtable_{b6dfaead-baaa-4024-908c-5dbd693d0fd3}] where InstanceID='FFA332B4-9BE3-409F-874E-1F16C35CD3D3')
+
+----RefStaff.Units (все подразделения)
+---- у основных подразедений ParentRowID,ParentTreeRowID нулевые
+---- у подчиненных первого уровня ParentTreeRowID равно RowID основного подразделения и т.д.
+--select RowID,ParentRowID,ParentTreeRowID,[Name] from [dvtable_{7473f07f-11ed-4762-9f1e-7ff10808ddd1}]
+----RefStaff.Empoyees (все сотрудники)
+---- у сотрудника ParentRowID ссылается на RowID в таблице подразделений
+--select RowID,ParentRowID,ParentTreeRowID,LastName from [dvtable_{dbc8ae9d-c1d2-4d5e-978b-339d22b32482}]
+
+
+
+---- связи между карточками MainInfo.ReferenceList (тип куда ссылаемся -> CardReferenceList и уже там из поля Card делается ссылка на конкретную карточку)
+---- Document.MainInfo
+--select ReferenceList from [dvtable_{30eb9b87-822b-4753-9a50-a1825dca1b74}] where InstanceID='ECB536A4-006F-4B60-A9C0-D36D663D5AD8'
+---- т.е., в поле ReferenceList таблицы MainInfo хранится ссылка на служебную карточку типа CardReferenceList, которая хранит ссылки на связные карточки
+---- убеждаемся в этом сделав запрос к Instances
+---- 
+--select * from dvsys_instances where InstanceID=(select ReferenceList from [dvtable_{30eb9b87-822b-4753-9a50-a1825dca1b74}] where InstanceID='ECB536A4-006F-4B60-A9C0-D36D663D5AD8')
+
+---- CardReferenceList.References (смотрим поле Card, в нем уже ссылка на кокретную связанную карточку)
+--select * from [dvtable_{568ce0a6-7096-43cc-9800-e0b268b14cc4}] where InstanceID=
+--(select ReferenceList from [dvtable_{30eb9b87-822b-4753-9a50-a1825dca1b74}] where InstanceID='ECB536A4-006F-4B60-A9C0-D36D663D5AD8')
+---- выбираем основную информацию по этой связанной карточке из Document.MainInfo
+--select * from [dvtable_{30eb9b87-822b-4753-9a50-a1825dca1b74}] where InstanceID in
+--(select Card from [dvtable_{568ce0a6-7096-43cc-9800-e0b268b14cc4}] where InstanceID=
+--(select ReferenceList from [dvtable_{30eb9b87-822b-4753-9a50-a1825dca1b74}] where InstanceID='ECB536A4-006F-4B60-A9C0-D36D663D5AD8')
+--)
+
+
+
+
+------------------------------------
+----
+---- расширенные поля (это допполя созданные в конструкторе разметок) хранятся в таблице MainInfo_extended
+---- которая связана с MainInfo по RowID
+---- 9A511AB7-3154-4109-A5B9-7495CB92A518 пример карточки заявка005
+---- 9A520F97-3D12-4E8A-AC76-7953B909B201 пример карточки запрос на командировку
+--select  * from [dvtable_{30eb9b87-822b-4753-9a50-a1825dca1b74}_extended] where RowID=
+--(select  RowID from [dvtable_{30eb9b87-822b-4753-9a50-a1825dca1b74}] where InstanceID='9A511AB7-3154-4109-A5B9-7495CB92A518')
+
+---- определение секций (хранятся в dvsys_sectiondefs): если поле Extended=1, то значит секция имеет расширенные поля
+--select * from dvsys_sectiondefs where SectionTypeID='30eb9b87-822b-4753-9a50-a1825dca1b74'
+---- если поле New=1, то значит что это новая расширенная секция, добавленная самостоятельно
+--select * from dvsys_sectiondefs where alias='Travelers'
+---- теперь, зная SectionTypeID, можно посмотреть данные в связанной таблице
+---- InstanceID ссылается на конкретную карточку
+--select * from [dvtable_{479f9010-a8e7-443f-b09a-02623ab146ed}] where InstanceID='9A520F97-3D12-4E8A-AC76-7953B909B201'
+
+---- определение полей (хранятся в dvsys_fielddefs)
+---- в SectionAlias хранится название секции
+---- IsNew=1 означает, что поле принадлежит новой секции
+---- IsExtend=1 означает, что это расширенное поле в стандартное секции
+--select * from dvsys_fielddefs where IsNew=1 or IsExtended=1
+
+---------------------
+---- добираемся до файла, приложенного к карточке
+---- в досументе есть секция Files типа таблица, в которой есть секция field, ссылающаяся на системную карточку
+---- Platform.VersionedFileCard c id 6e39ad2b-e930-4d20-aafa-c2ecf812c2b3
+---- в ней есть древовидный раздел версии, который ссылается уже на конкрентные версии файла
+---- [dvtable_{f831372e-8a76-4abc-af15-d86dc5ffbe12}] версии файла
+
+---- [dvtable_{a6fa8baf-2ea4-4071-aa3e-5c4e71646a90}] CardDocument.Files
+
+----CardDocument.Files получаем списко файлов карточки
+--select * from [dvtable_{a6fa8baf-2ea4-4071-aa3e-5c4e71646a90}] where InstanceID='9A511AB7-3154-4109-A5B9-7495CB92A518'
+----VersionedFileCard.Versions получаем ссылки на версии конкретного файла
+--select * from [dvtable_{f831372e-8a76-4abc-af15-d86dc5ffbe12}] where InstanceID=
+--(select FileID from [dvtable_{a6fa8baf-2ea4-4071-aa3e-5c4e71646a90}] where InstanceID='9A511AB7-3154-4109-A5B9-7495CB92A518')
+
+----dvsys_files системная таблица с файлами
+--select * from dvsys_files where FileID=
+--(select FileID from [dvtable_{f831372e-8a76-4abc-af15-d86dc5ffbe12}] where InstanceID=
+--(select FileID from [dvtable_{a6fa8baf-2ea4-4071-aa3e-5c4e71646a90}] where InstanceID='9A511AB7-3154-4109-A5B9-7495CB92A518')
+--)
+---- теперь к самому файлу добираемся по BinaryID
+---- содержимое файла хранится либо в Data, либо в StreamData (если тип хранилища FILESTREAM)
+--select * from dvsys_binaries where ID=
+--(select BinaryID from dvsys_files where FileID=
+--(select FileID from [dvtable_{f831372e-8a76-4abc-af15-d86dc5ffbe12}] where InstanceID=
+--(select FileID from [dvtable_{a6fa8baf-2ea4-4071-aa3e-5c4e71646a90}] where InstanceID='9A511AB7-3154-4109-A5B9-7495CB92A518')
+--)
+--)
+---------------
+
+
+--- метки
+-- выбираем карточки с метками
+select * from dvsys_instances_labels
+--- выбираем все возможные типы меток
+select * from dvsys_labels
