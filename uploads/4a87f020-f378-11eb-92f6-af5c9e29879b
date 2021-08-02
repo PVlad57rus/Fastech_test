@@ -1,9 +1,0 @@
--- выбираем книги
-select * from [dvtable_{b200df3a-41a8-48ce-9db4-b52738e886df}]
--- выбираем комментарии
-select * from [dvtable_{e15fc88e-659a-4bf6-b2b3-5028a51fb538}]
-
--- cессии
-select * from dvsys_sessions
--- пользователb
-select * from dvsys_users
