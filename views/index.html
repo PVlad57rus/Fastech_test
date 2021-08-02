@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en"></html>
+
+    <head>
+        <title>Фастек - Тестовое задание</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" type="text/css" href="/public/font-awesome-4.7.0/css/font-awesome.min.css">
+        <link rel="stylesheet" type="text/css" href="/public/css/style.css">
+        <script type="text/javascript" src="/public/js/jquery-3.6.0.min.js"></script>
+        <script type="text/javascript" src="/public/js/script.js"></script>
+    </head>
+
+    <body>
+        <div class="tabs">
+            <input type="radio" name="inset" value="" id="tab_1" checked>
+            <label for="tab_1">Добавить файлы</label>
+        
+            <input type="radio" name="inset" value="" id="tab_2">
+            <label for="tab_2">Добавить файл</label>
+
+            <div id="txt_1">
+                <div id="files-container" display:block>
+                    <form id="files-upload-container" class="upload-container" encType='multipart/form-data' method="POST" action="/add_files">
+                        <img id="upload-image" src="./public/images/upload.svg">
+                        <div>
+                            <input id="files-input" type="file" name="files" multiple>
+                            <label for="files-input">Выберите файлы</label>
+                            <br>
+                            <span>или перетащите их сюда</span>
+                        </div>
+                    </form>
+                    <br>
+                    <div id="files-block" style="width: 100%; display:none">
+                        <table  id="files-table" aligin="right" cols="4" cellpadding="2" border="0" width="100%"></table>  
+                    </div>    
+                </div> 
+            </div>
+            <div id="txt_2">
+                <div id="file-container" display:block>
+                    <form id="file-upload-container" class="upload-container" method="POST" action="/add_files">
+                        <img id="upload-image" src="./public/images/upload.svg">
+                        <div>
+                            <input id="file-input" type="file" name="file" >
+                            <label for="file-input">Выберите файл</label>
+                            <br>
+                            <span>или перетащите его сюда</span>
+                        </div>
+                    </form>
+                    <br>
+                    <div id="file-block" style="width: 100%; display:none">
+                        <table  id="file-table" aligin="right" cols="4" cellpadding="2" border="0" width="100%"></table>  
+                    </div>    
+                </div> 
+            </div>
+        </div>
+        
+    </body>
+
+</html>    
+
