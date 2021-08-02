@@ -26,7 +26,7 @@ let storage =   multer.diskStorage({
                 if (err) {
                     console.log(err.stack);
                 } else {
-                    callback(null, './c');
+                    callback(null, './uploads');
                 }
             });
             }
